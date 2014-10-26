@@ -1,0 +1,28 @@
+Images from:
+http://www.jfitz.com/cards/
+
+royal flush
+straight flush
+four of a kind
+full house
+flush
+straight
+three of a kind
+two pair 
+one pair
+high card
+
+//with each hand
+draw backs of cards
+allow for bets
+begin game
+show cards
+//phase two
+hold cards for redraw
+redraw without pulling duplicates
+//return to phase one
+show result
+update credits
+
+remember to move functions to the <head> per http://www.w3schools.com/js/js_functions.asp
+

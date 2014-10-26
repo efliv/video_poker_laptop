@@ -1,0 +1,26 @@
+#page {
+        width:600px;
+}
+
+div {
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+div.score {
+        clear:both;
+	background: red;
+}
+
+#main_button_div {
+        background:grey;
+        width:50%;
+	float:left;
+}
+
+#all_button_div {
+        background:blue;
+        width:50%;
+	float:left;
+}

@@ -1,0 +1,352 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Eddie's Video Poker</title>
+    <link type="text/css" href="style.css" rel="stylesheet">
+
+<script type = "text/javascript">
+
+// from http://papermashup.com/read-url-get-variables-withjavascript/
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+
+var entry0 = getUrlVars()["var0"];
+var entry1 = getUrlVars()["var1"];
+var entry2 = getUrlVars()["var2"];
+var entry3 = getUrlVars()["var3"];
+var entry4 = getUrlVars()["var4"];
+
+      var credits = 100;
+      var wager = 1;
+      var thehand = 0;
+      var myhand = 0;
+      var mycards = new Array();
+      var mycards_reference = new Array();
+      var temp = new Array();
+      var switched = new Array();
+      var frequency = new Array();
+      var cards = new
+Array("s01","s02","s03","s04","s05","s06","s07","s08","s09","s10","s11","s12","s13","h01","h02","h03","h04","h05","h06","h07","h08","h09","h10","h11","h12","h13","d01","d02","d03","d04","d05","d06","d07","d08","d09","d10","d11","d12","d13","c01","c02","c03","c04","c05","c06","c07","c08","c09","c10","c11","c12","c13");
+
+      //hand types
+      var h_fourofakind = 0;
+      var h_fullhouse = 0;
+      var h_flush = 0;
+      var h_straight = 0;
+      var h_threeofakind = 0;
+      var h_twopair = 0;
+      var h_onepair = 0;
+      var h_acehigh = 0;
+
+//testing moving this within the function
+//      var stepper = 0; // variable for steps in logic functions
+      var rand = 0; //random variable for card pulls
+      var x = 0; //needed for number frequency algo
+      var tlength = 0; // needed for straight function when pushing value 14 when ace present
+
+      function showmycards() {
+        document.getElementById("c0").src = "cards/"+mycards[0]+".png";
+        document.getElementById("c1").src = "cards/"+mycards[1]+".png";
+        document.getElementById("c2").src = "cards/"+mycards[2]+".png";
+        document.getElementById("c3").src = "cards/"+mycards[3]+".png";
+        document.getElementById("c4").src = "cards/"+mycards[4]+".png";
+      }
+
+      function addcard() {
+        rand = Math.floor(Math.random()*51);
+        while (mycards.indexOf(cards[rand]) >= 0) {
+          rand = Math.floor(Math.random()*51);
+        }
+        mycards.push(cards[rand]);
+      }
+
+// ***************** Overrides with entry, otherwise random
+      function pickmycards() {
+        var stepper = 0; // variable for steps in logic functions
+        if (entry0) {
+          mycards.push(entry0);
+          mycards.push(entry1);
+          mycards.push(entry2);
+          mycards.push(entry3);
+          mycards.push(entry4);        
+        } else {
+          while (stepper <= 4)
+          {
+            addcard();
+            stepper++;
+          }
+        }
+      }
+
+       function hand() {
+         h_fourofakind = 0;
+         h_fullhouse = 0;
+         h_flush = 0;
+         h_straight = 0;
+         h_threeofakind = 0;
+         h_twopair = 0;
+         h_onepair = 0;
+         h_acehigh = 0;
+
+         //define and sort array of hands
+         temp = new Array();
+         temp[0] = mycards[0].substring(1,mycards[0].length);
+         temp[1] = mycards[1].substring(1,mycards[1].length);
+         temp[2] = mycards[2].substring(1,mycards[2].length);
+         temp[3] = mycards[3].substring(1,mycards[3].length);
+         temp[4] = mycards[4].substring(1,mycards[4].length);
+
+         //four of a kind
+         temp.sort();
+         if (temp[0] == temp[1] && temp[1] == temp[2] && temp[2] == temp [3]) {
+           h_fourofakind = true;
+         } else if (temp[1] == temp[2] && temp[2] == temp[3] && temp[3] == temp [4]) {
+           h_fourofakind = true;
+         }
+
+         //full house
+         temp.sort();
+         if (temp[0] == temp[1] && temp[1] == temp[2] && temp[3] == temp [4]) {
+           h_fullhouse = true;
+         } else if (temp[0] == temp[1] && temp[2] == temp[3] && temp[3] == temp [4]) {
+           h_fullhouse = true;
+         }
+
+         //flush
+         temp[0] = mycards[0].substring(0,1);
+         temp[1] = mycards[1].substring(0,1);
+         temp[2] = mycards[2].substring(0,1);
+         temp[3] = mycards[3].substring(0,1);
+         temp[4] = mycards[4].substring(0,1);
+         temp.sort();
+         if (temp[0] == temp[4]) {
+           h_flush = true;
+         }
+
+         //three of a kind
+         temp[0] = mycards[0].substring(1,mycards[0].length);
+         temp[1] = mycards[1].substring(1,mycards[1].length);
+         temp[2] = mycards[2].substring(1,mycards[2].length);
+         temp[3] = mycards[3].substring(1,mycards[3].length);
+         temp[4] = mycards[4].substring(1,mycards[4].length);
+         temp.sort();
+         if ((temp[0] == temp[1] && temp[1] == temp[2]) || (temp[1] == temp[2] && temp[2] == temp[3]) || (temp[2] == temp[3] && temp[3] == temp[4])) {
+           h_threeofakind = true;
+         }
+
+         //twopair
+         temp.sort();
+         if (temp[0] == temp[1] && ( temp[2] == temp[3] || temp[3] == temp[4])){
+           h_twopair = true;
+         }
+         temp.reverse();
+         if (temp[0] == temp[1] && ( temp[2] == temp[3] || temp[3] == temp[4])) {
+           h_twopair = true;
+         }
+
+         //onepair
+         temp.sort();
+         if (temp[0] == temp[1] || temp[1] == temp[2] || temp[2] == temp[3] || temp[3] == temp[4] ) {
+           h_onepair = true;
+         }
+         //acehigh
+         temp.sort();
+         if (temp[0] == 1) {
+           h_acehigh = true;
+         }
+
+         //straight
+         temp.sort();
+         if (temp[0] == "01") {
+           temp.push("14");
+         }
+         tlength = temp.length;
+         if (temp[1] - temp[0] == 1 && temp[2] - temp[1] == 1 && temp[3] - temp[2] == 1 && temp[4] - temp[3] == 1) {
+           h_straight = true;
+         }
+         if (temp[tlength-4] - temp[tlength-5] == 1 && temp[tlength-3] - temp[tlength-4] == 1 && temp[tlength-2] - temp[tlength-3] == 1 && temp[tlength-1] - temp[tlength-2] == 1) {
+           h_straight = true;
+         }
+         if (tlength = 6) {
+           temp.pop();
+         }
+         //final determination
+
+
+         if (h_acehigh && h_flush && h_straight && temp[4] == 13) {
+           return ("royalflush"); 
+         } else if (h_flush && h_straight) {
+           return ("straightflush");
+         } else if (h_fourofakind) {
+           return ("fourofakind");
+         } else if (h_fullhouse) {
+           return ("fullhouse");
+         } else if (h_flush) {
+           return ("flush");
+         } else if (h_straight) {
+           return ("straight");
+         } else if (h_threeofakind) {
+           return ("threeofakind");
+         } else if (h_twopair) {
+           return ("twopair");
+         } else if (h_onepair) {
+           return ("onepair");
+         } else if (h_acehigh) {
+           return ("acehigh");
+         } else {
+           return ("yougotnothing");
+         }
+       }
+
+       function result(passed_hand,wager) {
+         if (passed_hand == "onepair") {
+           //nothing, keep credits
+         } else if (passed_hand == "royalflush") {
+           credits = credits + (9 * wager);
+         } else if (passed_hand == "straightflush") {
+           credits = credits + (8 * wager);
+         } else if (passed_hand == "fourofakind") {
+           credits = credits + (7 * wager);
+         } else if (passed_hand == "fullhouse") {
+           credits = credits + (6 * wager);
+         } else if (passed_hand == "flush") {
+           credits = credits + (5 * wager);
+         } else if (passed_hand == "straight") {
+           credits = credits + (4 * wager);
+         } else if (passed_hand == "threeofakind") {
+           credits = credits + (2 * wager);
+         } else if (passed_hand == "twopair") {
+           credits = credits + wager;
+         } else {
+           credits = credits - wager; 
+         }
+         document.getElementById("score").innerHTML = credits;
+         document.getElementById("hand").innerHTML = hand();
+       }
+
+       function card1() {
+         alert("I'm working on it!");
+       }
+
+    function switchcard(switched_card) {
+      var spot = 0;
+      spot = switched_card.substring(1,2);
+        if (mycards[spot] == 0) {
+          mycards[spot] = mycards_reference[spot];
+          document.getElementById(switched_card).src = "cards/"+mycards[spot]+".png";
+        } else {
+          mycards[spot] = 0;
+          document.getElementById(switched_card).src = "cards/back.png";
+        }
+    }
+
+    function redraw() {
+//    alert(mycards[0]+", "+mycards[1]+", "+mycards[2]+", "+mycards[3]+", "+mycards[4]);
+    if (mycards.indexOf(0) >= 0) {
+      var cardnum = 0;
+      for (cardnum = 0; cardnum<= 4; cardnum++) {
+        if (mycards[cardnum] == 0) {
+          rand = Math.floor(Math.random()*51);
+          while (mycards.indexOf(cards[rand]) >= 0 && mycards_reference.indexOf(cards[rand]) >= 0) {
+            rand = Math.floor(Math.random()*51);
+          }
+          mycards[cardnum] = cards[rand];
+        }
+      }
+    }
+    showmycards();
+    result(hand(),wager);
+    document.getElementById("main_button_div").innerHTML="<button id='main_button' type='button' onClick='JavaScript:start()'>Next Hand</button>";
+    document.getElementById("all_button_div").style.display="none";
+    }
+
+    function submit_all() {
+      var cardnum = 0;
+      for (cardnum = 0; cardnum<= 4; cardnum++) {
+        rand = Math.floor(Math.random()*51);
+        while (mycards.indexOf(cards[rand]) >= 0 && mycards_reference.indexOf(cards[rand]) >= 0) {
+          rand = Math.floor(Math.random()*51);
+        }
+        mycards[cardnum] = cards[rand];
+      }
+      showmycards();
+      result(hand(),wager);
+      document.getElementById("main_button_div").innerHTML="<button id='main_button' type='button' onClick='JavaScript:start()'>Next Hand</button>";
+      document.getElementById("all_button_div").style.display="none";
+    }
+
+
+
+function start() {
+      //work to clean these vars up and put them in the functions themselves
+      thehand = 0;
+      myhand = 0;
+      mycards = new Array();
+      switched = new Array(0,0,0,0,0);
+      temp = new Array();
+      frequency = new Array();
+      rand = 0; //random variable for card pulls
+      x = 0; //needed for number frequency algo
+      tlength = 0; // needed for straight function when pushing value 14 when ace present
+
+    document.getElementById("main_button_div").innerHTML="<button id='main_button' type='button' onClick='JavaScript:redraw()'>Re-Draw</button>";
+    document.getElementById("all_button_div").innerHTML="<button id='all_button' type='button' onClick='JavaScript:submit_all()'>All</button>";
+    document.getElementById("all_button_div").style.display="inline";
+
+    mycards_reference = new Array(); 
+    pickmycards();
+    mycards_reference = mycards.slice(0);
+    showmycards();
+    document.getElementById("score").innerHTML = credits;
+    document.getElementById("hand").innerHTML = hand();
+}
+
+</script>
+
+  </head>
+  <body>
+  <div id="page">
+    <div id="title"><h1>Welcome To Eddie's Video Poker!</h1></div>
+    <div id="cards">
+      <img id="c0" onClick="JavaScript:switchcard(id)" src="cards/back.png">
+      <img id="c1" onClick="JavaScript:switchcard(id)" src="cards/back.png">
+      <img id="c2" onClick="JavaScript:switchcard(id)" src="cards/back.png">
+      <img id="c3" onClick="JavaScript:switchcard(id)" src="cards/back.png">
+      <img id="c4" onClick="JavaScript:switchcard(id)" src="cards/back.png">
+    </div>
+    <div id="hand_area">Hand: <span id="hand">?</span></div>
+        <div id="main_button_div"><button id="main_button" type="button" onClick="JavaScript:start()">Start</button></div>
+        <div id="all_button_div"></div>
+    </br>
+    <div class="score" id="score_area">Score: <span id="score">0</span></div>
+
+
+
+<!-- Hand Debugger Code
+    <form action="index.html" method="get">
+      <input type="text" name="var0" /><br />
+      <input type="text" name="var1" /><br />
+      <input type="text" name="var2" /><br />
+      <input type="text" name="var3" /><br />
+      <input type="text" name="var4" /><br />
+      <input type="submit" value="submit" />
+    </form>
+    <form action="index.html">
+      <input type="submit" value="reset" />
+    </form>
+
+    </br>
+-->
+
+  </div>
+  </body>
+
+
+
+
+</html>
